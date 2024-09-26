@@ -1,0 +1,433 @@
+:root {
+    --navbar-width: 300px;
+    --navbar-width-min: 80px;
+    --navbar-dark-primary: #f0f4f9;
+    --navbar-dark-secondary: #2c3e50;
+    --navbar-light-primary: #000;
+    --navbar-light-secondary: #111111;
+}
+
+html,
+body {
+    margin: 0;
+    color: black;
+}
+.nav-bar{
+    display: flex;
+    height: 100%;
+    z-index: 1;
+}
+#nav-toggle:checked~#nav-header {
+    width: calc(var(--navbar-width-min) - 16px);
+}
+
+#nav-toggle:checked~#nav-content,
+#nav-toggle:checked~#nav-footer {
+    width: var(--navbar-width-min);
+}
+
+#nav-toggle:checked~#nav-header #nav-title {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s;
+}
+
+#nav-toggle:checked~#nav-header label[for=nav-toggle] {
+    /* left: calc(50% - 8px); */
+    transform: translate(-50%);
+}
+
+#nav-toggle:checked~#nav-header #nav-toggle-burger {
+    background: var(--navbar-light-primary);
+}
+
+#nav-toggle:checked~#nav-header #nav-toggle-burger:before,
+#nav-toggle:checked~#nav-header #nav-toggle-burger::after {
+    width: 16px;
+    background: var(--navbar-light-secondary);
+    transform: translate(0, 0) rotate(0deg);
+}
+
+#nav-toggle:checked~#nav-content .nav-button span {
+    opacity: 0;
+    transition: opacity 0.1s;
+}
+
+#nav-toggle:checked~#nav-content .nav-button .fas {
+    min-width: calc(100% - 16px);
+}
+
+#nav-toggle:checked~#nav-content .show {
+    display: none;
+}
+
+#nav-toggle:checked~#nav-content .chats {
+    display: none;
+}
+
+#nav-toggle:checked~#nav-footer #nav-footer-avatar {
+    margin-left: 0;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+#nav-toggle:checked~#nav-footer #nav-footer-titlebox,
+#nav-toggle:checked~#nav-footer label[for=nav-footer-toggle] {
+    opacity: 0;
+    transition: opacity 0.1s;
+    pointer-events: none;
+}
+
+#nav-bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    height: 100%;
+    background: var(--navbar-dark-primary);
+    color: var(--navbar-light-primary);
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    overflow: hidden;
+    user-select: none;
+    z-index: 1;
+}
+
+#nav-bar hr {
+    margin: 0;
+    position: relative;
+    width: 100%;
+    border: none;
+    border-top: solid 1px var(--navbar-dark-secondary);
+}
+
+#nav-bar a {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+#nav-bar input[type=checkbox] {
+    display: none;
+}
+
+#nav-header {
+    position: relative;
+    width: var(--navbar-width);
+    left: 16px;
+    width: calc(var(--navbar-width) - 16px);
+    min-height: 80px;
+    background: var(--navbar-dark-primary);
+    border-radius: 16px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    transition: width 0.2s;
+}
+
+#nav-header hr {
+    position: absolute;
+    bottom: 0;
+}
+
+#nav-title {
+    font-size: 1.5rem;
+    transition: opacity 1s;
+}
+
+label[for=nav-toggle] {
+    position: absolute;
+    right: 0;
+    width: 3rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+#nav-toggle-burger {
+    position: relative;
+    width: 16px;
+    height: 2px;
+    background: var(--navbar-dark-primary);
+    border-radius: 99px;
+    transition: background 0.2s;
+}
+
+#nav-toggle-burger:before,
+#nav-toggle-burger:after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    width: 10px;
+    height: 2px;
+    background: var(--navbar-light-primary);
+    border-radius: 99px;
+    transform: translate(2px, 8px) rotate(30deg);
+    transition: 0.2s;
+}
+
+#nav-toggle-burger:after {
+    top: 6px;
+    transform: translate(2px, -8px) rotate(-30deg);
+}
+
+#nav-content {
+    margin: -16px 0;
+    padding: 16px 0;
+    position: relative;
+    flex: 1;
+    width: var(--navbar-width);
+    background: var(--navbar-dark-primary);
+    box-shadow: 0 0 0 16px var(--navbar-dark-primary);
+    overflow-x: hidden;
+    transition: width 0.2s;
+}
+
+#nav-content::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+#nav-content::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    background-color: #D62929;
+}
+
+#nav-content-highlight {
+    position: absolute;
+    left: 16px;
+    top: -70px;
+    width: calc(100% - 16px);
+    height: 54px;
+    background: var(--background);
+    background-attachment: fixed;
+    border-radius: 16px 0 0 16px;
+    transition: top 0.2s;
+}
+
+#nav-content-highlight:before,
+#nav-content-highlight:after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    box-shadow: 16px 16px var(--background);
+}
+
+#nav-content-highlight:after {
+    top: 100%;
+    box-shadow: 16px -16px var(--background);
+}
+
+.nav-button {
+    position: relative;
+    margin-left: 16px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    color: var(--navbar-light-secondary);
+    direction: ltr;
+    cursor: pointer;
+    z-index: 1;
+    transition: color 0.2s;
+}
+
+.nav-button span {
+    transition: opacity 1s;
+}
+
+.nav-button .fas {
+    transition: min-width 0.2s;
+}
+
+#nav-bar .fas {
+    min-width: 3rem;
+    text-align: center;
+}
+
+.chats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin: 10px 30px;
+}
+
+.chats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 10px 30px;
+}
+.chats p {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: rgb(203, 199, 199);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    position: relative;
+}
+
+.chats .fa-ellipsis-vertical {
+    display: none;
+    margin-right: 10px; 
+}
+
+.chats p:hover .fa-ellipsis-vertical {
+    display: inline-block; /* Show the ellipsis on hover */
+}
+
+.chats p:hover {
+    background-color: gray;
+}
+
+.show {
+    margin-top: -30px;
+}
+
+#nav-footer {
+    position: relative;
+    width: var(--navbar-width);
+    height: 54px;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+    transition: width 0.2s, height 0.2s;
+}
+
+#nav-footer-heading {
+    position: relative;
+    width: 100%;
+    height: 54px;
+    display: flex;
+    align-items: center;
+}
+
+#nav-footer-avatar {
+    position: relative;
+}
+
+#nav-footer-avatar img {
+    margin: 5px 7px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.menu {
+    position: absolute;
+    width: 290px;
+    height: auto;
+    background-color: var(--navbar-dark-primary);
+}
+
+.dropdown-menu .img {
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.dropdown-menu .img #user-img {
+    width: 80px;
+    height: 80px;
+    cursor: default;
+}
+
+.dropdown-menu .img .pencil-icon {
+    margin-top: -20px;
+    margin-left: 45px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+#nav-footer-titlebox {
+    position: relative;
+    margin-left: 16px;
+    width: 10px;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 1s;
+}
+
+#nav-footer-toggle:checked+#nav-footer {
+    height: 30%;
+    min-height: 54px;
+}
+
+#nav-footer-toggle:checked+#nav-footer label[for=nav-footer-toggle] {
+    transform: rotate(180deg);
+}
+
+label[for=nav-footer-toggle] {
+    position: absolute;
+    right: 0;
+    width: 3rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+#nav-footer-content {
+    margin: 0 -20px;
+    border-top: solid 1px var(--navbar-light-secondary);
+    padding: 16px 0;
+    color: var(--navbar-light-secondary);
+    font-size: 0.8rem;
+}
+
+#nav-footer-content ul li {
+    list-style: none;
+    font-size: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+#nav-footer-content ul li span {
+    margin-left: 20px;
+}
+
+#nav-footer-content::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+#nav-footer-content::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    background-color: #D62929;
+}
+
+.dark {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+.dark p {
+    margin: 10px 0;
+}
+
+#nav-footer-title {
+    display: flex;
+    position: absolute;
+    text-decoration: none;
+    white-space: nowrap;
+    margin: -15px 0;
+}
+
+.buttons {
+    display: flex;
+    gap: 20px;
+}
