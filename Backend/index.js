@@ -1,4 +1,4 @@
-import {connectToDb} from "./DataBase/db.js"
+import { connectToDb } from "./DataBase/db.js"
 import express from "express";
 import bodyParser from "body-parser";
 import router from "./Routes/user.route.js"
@@ -15,13 +15,21 @@ dotenv.config({
 });
 
 const corsOptions = {
-    origin: 'http://localhost:5173' || "https://geminisphere.netlify.app",
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-  }
+    origin: (origin, callback) => {
+        const allowedOrigins = ['http://localhost:5173', 'https://geminisphere.netlify.app'];
+        if (allowedOrigins.includes(origin) || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    optionsSuccessStatus: 200
+};
+
 
 // Midleware
 app.use(express.json());
-app.use(express.urlencoded({extended : true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 
@@ -32,10 +40,10 @@ app.get('/', (req, res) => {
 
 
 // user route
-app.use("/user",router);
+app.use("/user", router);
 
 // chat route 
-app.use("/chat",chatRouter);
+app.use("/chat", chatRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
