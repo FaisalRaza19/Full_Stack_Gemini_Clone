@@ -17,13 +17,17 @@ dotenv.config({
 const corsOptions = {
     origin: (origin, callback) => {
         const allowedOrigins = ['http://localhost:5173', 'https://geminisphere.netlify.app'];
+
         if (allowedOrigins.includes(origin) || !origin) {
             callback(null, true);
         } else {
+            console.warn(`CORS error for origin: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    optionsSuccessStatus: 200
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200,
 };
 
 
