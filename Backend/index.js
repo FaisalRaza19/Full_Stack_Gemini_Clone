@@ -16,7 +16,7 @@ dotenv.config({
 
 const corsOptions = {
     origin: (origin, callback) => {
-        const allowedOrigins = ['http://localhost:5173', 'https://geminisphere.netlify.app'];
+        const allowedOrigins = ['http://localhost:5173', 'https://geminisphere.netlify.app', 'https://full-stack-gemini-clone.vercel.app/'];
 
         if (allowedOrigins.includes(origin) || !origin) {
             callback(null, true);
