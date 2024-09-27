@@ -1,12 +1,11 @@
 import { createContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import { useParams } from "react-router-dom";
 
 export const ContextApi = createContext();
 
 export const ContextProvider = ({ children }) => {
     const [user, setUser] = useState({});
-    const [chatQuiresData,setChatQuiresData] = useState([]);
+    const [chatQuiresData, setChatQuiresData] = useState([]);
 
     // Register user
     const registerUser = async ({ setIsLoggedIn, credentials, navigate }) => {
@@ -162,14 +161,14 @@ export const ContextProvider = ({ children }) => {
     };
 
     // New Chat 
-    const NewChat = async ({ query, file, chatId = null}) => {
+    const NewChat = async ({ query, file, chatId = null }) => {
         try {
             const fromData = new FormData();
             fromData.append("query", query)
             if (file) {
                 fromData.append("file", file)
             };
-            if (chatId ) {
+            if (chatId) {
                 fromData.append("chatId", chatId)
             }
 
@@ -190,24 +189,24 @@ export const ContextProvider = ({ children }) => {
         }
     }
 
-    const fetchQuiresWithResult = async({chatId})=>{
+    const fetchQuiresWithResult = async ({ chatId }) => {
         try {
             const formData = new FormData();
-            formData.append("chatId",chatId)
-            const responce = await fetch("http://localhost:5000/chat/getAllQueriesResult",{
-                method : "POST",
-                headers : {
-                    "Authorization" : `Bearer ${localStorage.getItem('token')}`,
+            formData.append("chatId", chatId)
+            const responce = await fetch("http://localhost:5000/chat/getAllQueriesResult", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem('token')}`,
                 },
-                body : formData,
+                body: formData,
             })
             const data = await responce.json();
-            if(data.statusCode == 200 || data.ok){
+            if (data.statusCode == 200 || data.ok) {
                 setChatQuiresData(data);
                 return data;
             }
         } catch (error) {
-            console.log("Something went wrong to fetch chat quires data",error)
+            console.log("Something went wrong to fetch chat quires data", error)
         }
     }
 
@@ -252,6 +251,12 @@ export const ContextProvider = ({ children }) => {
             });
 
             const data = await response.json();
+            const currentPath = window.location.pathname;
+            const urlChatId = currentPath.split('/').pop();
+
+            if (urlChatId === id) {
+                navigate("/");
+            }
 
             setUser((prevUser) => ({
                 ...prevUser,

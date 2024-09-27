@@ -22,13 +22,15 @@ const ChatPage = () => {
 
     useEffect(()=>{
         const currentPath = window.location.pathname;
-        if(!chatId){
+        if(currentPath == "/"){
             setResult([]);
             navigate("/")
+            console.log("Id 1 is not present")
         }
         else if(currentPath == "/" && result == true){
             setResult([]);
             navigate("/")
+            console.log("Id 2 is not present")
         }
         else{
             console.log("Id is present")

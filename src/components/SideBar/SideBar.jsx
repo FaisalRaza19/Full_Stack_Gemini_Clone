@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ContextApi } from '../../Context/context';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate} from 'react-router-dom';
 import "./SideBar.css";
 
 const SideBar = ({ setIsLoggedIn }) => {
@@ -49,7 +49,7 @@ const SideBar = ({ setIsLoggedIn }) => {
     };
 
     const handleDelete = async (id) => {
-        await deleteChat(id, navigate)
+        await deleteChat(id,navigate)
     }
 
     const handleChatQueries = async (chatId) => {
@@ -99,7 +99,9 @@ const SideBar = ({ setIsLoggedIn }) => {
                     <div className="chats">
                         {getUser.chatHistory && getUser.chatHistory.length > 0 ? (
                             getUser.chatHistory
-                                .slice(0, showAll ? getUser.chatHistory.length : 5)
+                                .slice(showAll ? 0 : -5)
+                                .reverse() 
+                                // .slice(0, showAll ? getUser.chatHistory.length : -5)
                                 .map((chat, index) => {
                                     const chatName = chat.name ? chat.name.slice(0, 18) : "No Chat";
                                     const isNameTruncated = chat.name && chat.name.length >= 18;
