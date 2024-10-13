@@ -16,7 +16,7 @@ dotenv.config({
 
 const corsOptions = {
     origin: (origin, callback) => {
-        const allowedOrigins = ['http://localhost:5173','https://full-stack-gemini-clone.vercel.app','http://full-stack-gemini-clone.vercel.app'];
+        const allowedOrigins = ['http://localhost:5173' || 'https://full-stack-gemini-clone.vercel.app'];
 
         if (allowedOrigins.includes(origin) || !origin) {
             callback(null, true);
