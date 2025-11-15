@@ -28,9 +28,9 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 // CORS setup
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        const isAllowed = allowedOrigins.includes(origin);
-        if (isAllowed || allowedOrigins.length === 0) {
+        const allowedOrigins = ['http://localhost:5173' || 'https://full-stack-gemini-clone.vercel.app'];
+
+        if (allowedOrigins.includes(origin) || !origin) {
             callback(null, true);
         } else {
             callback(new Error("Not allowed by CORS"));
