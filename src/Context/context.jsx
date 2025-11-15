@@ -1,5 +1,7 @@
 import { createContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export const ContextApi = createContext();
 
@@ -8,53 +10,14 @@ export const ContextProvider = ({ children }) => {
     const [chatQuiresData, setChatQuiresData] = useState([]);
 
     // Register user
-    const registerUser = async ({ setIsLoggedIn, credentials, navigate }) => {
+    const registerUser = async ({ setIsLoggedIn, credentials, fetchUser,navigate}) => {
         // Ensure all fields are filled
-        if (!credentials.fullName || !credentials.email || !credentials.userName || !credentials.password) {
-            alert("All fields are required.");
-            return;
+        if (!credentials.fullName || !credentials.email || !credentials.password) {
+            return { message: "All Fields are required" };
         }
 
         try {
             const response = await fetch("http://localhost:5000/user/register", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(credentials),
-            });
-
-            const data = await response.json();
-
-            // Check if registration is successful
-            if (response.status !== 200 || !response.ok) {
-                alert(data.message || "Please enter correct credentials.");
-                return;
-            }
-
-            // If registration is successful, store token and update state
-            localStorage.setItem('token', data.access_token);
-            setIsLoggedIn(true);
-            alert("New User Created Successfully");
-            await fetchUser();
-            navigate("/");
-            return data;
-
-        } catch (error) {
-            console.error("Registration error:", error);
-            alert("Registration failed. Please try again later.");
-        }
-    };
-
-    // Login user
-    const loginUser = async ({ e, setIsLoggedIn, credentials, navigate }) => {
-        e.preventDefault();
-
-        if (!credentials.email || !credentials.userName || !credentials.password) {
-            alert("All fields are required.");
-            return;
-        }
-
-        try {
-            const response = await fetch("http://localhost:5000/user/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(credentials),
@@ -62,22 +25,62 @@ export const ContextProvider = ({ children }) => {
 
             const data = await response.json();
 
-            if (response.status !== 200 || !response.ok) {
-                alert(data.message || "Login failed. Please try again.");
-                return;
+            // Registration successful
+            if (data.statusCode === 200) {
+                toast.success(data.message || "Account created successfully!")
+                localStorage.setItem("token", data.access_token);
+                setIsLoggedIn(true);
+                if (fetchUser) await fetchUser();
+                navigate("/")
+            }
+            return data
+        } catch (error) {
+            console.error("Registration error:", error);
+            toast.error("Registration failed. Please try again later.");
+        }
+    };
+
+
+    // Login user
+    const loginUser = async ({ e, setIsLoggedIn, credentials,navigate}) => {
+        e.preventDefault();
+
+        const { identifier, password } = credentials;
+
+        if (!identifier || !password) {
+            return { statusCode: 400, message: "Both fields are required." };
+        }
+
+        try {
+            // Send request to backend
+            const response = await fetch("http://localhost:5000/user/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ identifier, password }), // send combined field
+            });
+
+            const data = await response.json();
+
+            // Save token and update state
+            if (data?.statusCode === 200) {
+                toast.success(data.message || "Account created successfully!")
+                localStorage.setItem("token", data.access_token);
+                setIsLoggedIn(true);
+
+                // Fetch user info if you have a function for that
+                if (typeof fetchUser === "function") {
+                    await fetchUser();
+                }
+                navigate("/")
             }
 
-            localStorage.setItem("token", data.access_token);
-            setIsLoggedIn(true);
-            await fetchUser();
-            navigate("/");
             return data;
-
         } catch (error) {
             console.error("Login error:", error);
             alert("Login failed. Please check your credentials or try again later.");
         }
     };
+
 
     // Fetch user data
     const fetchUser = async (setIsLoggedIn, navigate) => {
@@ -123,9 +126,11 @@ export const ContextProvider = ({ children }) => {
 
             const data = await response.json();
 
-            localStorage.removeItem("token");
-            setIsLoggedIn(false);
-            navigate("/login");
+            if (data.statusCode === 200) {
+                localStorage.removeItem("token");
+                setIsLoggedIn(false);
+                navigate("/login");
+            }
             return data;
         } catch (error) {
             console.error("Logout error:", error);

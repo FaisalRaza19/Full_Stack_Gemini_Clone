@@ -7,50 +7,61 @@ import JWT from "jsonwebtoken"
 // register new user 
 const register = async (req, res) => {
     try {
-        // get information throw req.body 
-        const { fullName, email, userName, password } = req.body;
+        // Get information from req.body
+        const { fullName, email, password } = req.body;
 
-        // check any filed is empty? 
-        if ([fullName, email, userName, password].some((e) => e.trim() === "")) {
-            return res.status(400).json({ message: "All fields required" })
-        };
+        // Check if any field is empty
+        if ([fullName, email, password].some((e) => e.trim() === "")) {
+            return res.status(400).json({ message: "All fields required" });
+        }
 
-        // check all field 
+        // Validate fullName
         if (fullName.length < 3) {
-            return res.status(400).json({ message: "Name required min 3 chracter" })
-        };
+            return res.status(400).json({ message: "Name required min 3 characters" });
+        }
 
+        // Validate email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email) || email.length < 15) {
-            return res.status(400).json({ message: "email required min 15 chracter and atleast 1 special Chracter." })
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: "Invalid email format" });
         }
 
+        // Validate password
         const specialChars = /[!@#$%^&_*(),.?":{}|<>]/;
-
         if (!specialChars.test(password) || password.length < 8) {
-            return res.status(400).json({ message: "Password required min 8 chracter and atleast 1 special Chracter" })
-        }
-        if (!specialChars.test(userName) || userName.length < 12) {
-            return res.status(400).json({ message: "userName required min 12 chracter and atleast 1 special Chracter" })
-        }
-
-        // Ensure email and userName are lowercase
-        if (email !== email.toLowerCase() || userName !== userName.toLowerCase()) {
-            return res.status(400).json({ message: "Email and username must be in lowercase" });
+            return res.status(400).json({
+                message: "Password required min 8 characters and at least 1 special character",
+            });
         }
 
-        const checkUser = await User.findOne({
-            $and: [{ email }, { userName }],
-        })
+        // Ensure email is lowercase
+        if (email !== email.toLowerCase()) {
+            return res.status(400).json({ message: "Email must be in lowercase" });
+        }
 
-        if (checkUser) {
-            return res.status(400).json({ message: "Try another email or userName." })
+        // Check if email already exists
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+            return res.status(400).json({ message: "Email already in use" });
+        }
+
+        // Function to generate unique username
+        const generateUniqueUserName = async (baseName) => {
+            let username = baseName.toLowerCase().replace(/\s+/g, "") + Math.floor(Math.random() * 1000);
+            let exists = await User.findOne({ userName: username });
+            while (exists) {
+                username = baseName.toLowerCase().replace(/\s+/g, "") + Math.floor(Math.random() * 1000);
+                exists = await User.findOne({ userName: username });
+            }
+            return username;
         };
 
-        //    generate password hash 
+        const userName = await generateUniqueUserName(fullName);
 
+        // Generate password hash
         const hashPass = await bcrypt.hash(password, 10);
 
+        // Create new user
         const newUser = await User.create({
             fullName,
             email,
@@ -58,112 +69,92 @@ const register = async (req, res) => {
             password: hashPass,
         });
 
+        // Generate tokens
+        const refresh_token = JWT.sign({ id: newUser._id }, process.env.REFRESH_TOKEN_SECRET, {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+        });
 
-        // generate Tokens 
-        const refresh_token = JWT.sign(
-            {
-                id: newUser._id,
-            },
-            process.env.REFRESH_TOKEN_SECRET,
-            {
-                expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-            }
-        );
-
-        const access_token = JWT.sign(
-            {
-                id: newUser._id,
-            },
-            process.env.ACCESS_TOKEN_SECRET,
-            {
-                expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-            }
-        );
+        const access_token = JWT.sign({ id: newUser._id }, process.env.ACCESS_TOKEN_SECRET, {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+        });
 
         await User.findByIdAndUpdate(newUser._id, { refreshToken: refresh_token });
 
         const createdUser = await User.findById(newUser._id).select("-password -refreshToken");
         if (!createdUser) {
-            return res.status(500).json({ message: "Internal server error" })
-        };
+            return res.status(500).json({ message: "Internal server error" });
+        }
 
         return res.status(200).json({
             statusCode: 200,
             data: createdUser,
             message: "User created successfully",
             access_token,
-        })
+        });
     } catch (error) {
-        console.log("Something went wrong to register the user", error)
+        console.error("Something went wrong during registration", error);
+        return res.status(500).json({ message: "Server error" });
     }
-
 };
 
 // login the user 
 const login = async (req, res) => {
     try {
-        const { email, userName, password } = req.body;
+        const { identifier, password } = req.body;
 
-        // check any filed is empty? 
-        if ([email, userName, password].some((e) => e.trim() === "")) {
-            return res.status(400).json({ message: "All fields required" })
-        };
+        // Validate fields
+        if (!identifier?.trim() || !password?.trim()) {
+            return res.status(400).json({ message: "Both fields are required" });
+        }
 
+        // Find user by email or username
         const checkUser = await User.findOne({
-            $and: [{ email }, { userName }],
-        })
+            $or: [{ email: identifier }, { userName: identifier }],
+        });
 
         if (!checkUser) {
-            return res.status(400).json({ message: "email or userName is not Valid" })
-        };
+            return res.status(400).json({ message: "Email or username is not valid" });
+        }
 
-        // check password 
-        const checkPass = await bcrypt.compare(password, checkUser.password);
-        if (!checkPass) {
-            return res.status(400).json({ message: "Please enter Correct Password" })
-        };
+        // Check password
+        const isPasswordValid = await bcrypt.compare(password, checkUser.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: "Incorrect password" });
+        }
 
-        // generate Tokens 
+        // Generate Tokens
         const refresh_token = JWT.sign(
-            {
-                id: checkUser._id,
-            },
+            { id: checkUser._id },
             process.env.REFRESH_TOKEN_SECRET,
-            {
-                expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-            }
+            { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
         );
 
         const access_token = JWT.sign(
-            {
-                id: checkUser._id,
-            },
+            { id: checkUser._id },
             process.env.ACCESS_TOKEN_SECRET,
-            {
-                expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-            }
+            { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
         );
 
+        // Save refresh token in DB
         await User.findByIdAndUpdate(checkUser._id, { refreshToken: refresh_token });
 
+        // Return user data without sensitive info
         const loginUser = await User.findById(checkUser._id).select("-password -refreshToken");
         if (!loginUser) {
-            return res.status(500).json({ message: "Something went wrong to login the user" })
+            return res.status(500).json({ message: "Something went wrong during login" });
         }
 
         return res.status(200).json({
             statusCode: 200,
             data: loginUser,
-            access_token: access_token,
-            message: "User Login Success fully",
-        })
-
-
-
+            access_token,
+            message: "User logged in successfully",
+        });
     } catch (error) {
-        console.log("Something went wrong to Login the user", error)
+        console.error("Error logging in user:", error);
+        return res.status(500).json({ message: "Server error during login" });
     }
-}
+};
 
 // logOut the User 
 const logOut = async (req, res) => {

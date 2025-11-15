@@ -25,7 +25,6 @@ const ChatPage = () => {
         if(currentPath == "/"){
             setResult([]);
             navigate("/")
-            console.log("Id 1 is not present")
         }
         else if(currentPath == "/" && result == true){
             setResult([]);

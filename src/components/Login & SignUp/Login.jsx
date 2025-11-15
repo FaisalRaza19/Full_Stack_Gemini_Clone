@@ -1,203 +1,157 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ContextApi } from "../../Context/context";
-import './Login.css';
+import { MdOutlineEmail, MdLock } from "react-icons/md";
+import { FaArrowLeft } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage = ({ setIsLoggedIn }) => {
-    const { loginUser } = useContext(ContextApi);
-    const [credentials, setCredentials] = useState({ email: "", userName: "", password: "" });
-    const navigate = useNavigate();
+  const { loginUser } = useContext(ContextApi);
+  const [credentials, setCredentials] = useState({
+    identifier: "", // email or username
+    password: "",
+  });
+  const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await loginUser({ e, setIsLoggedIn, credentials, navigate });
-        } catch (error) {
-            console.error("Login failed:", error);
-            alert("Login failed. Please try again.");
-        }
-    };
+  const validateInputs = () => {
+    const { identifier, password } = credentials;
+    if (!identifier.trim()) {
+      toast.error("Email or username is required!");
+      return false;
+    }
+    if (!password.trim()) {
+      toast.error("Password is required!");
+      return false;
+    }
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return false;
+    }
+    return true;
+  };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setCredentials(prevCredentials => ({ ...prevCredentials, [name]: value }));
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    return (
-        <div className="login-container hero-bg">
-            <header className="login-header">
-                <Link to="/">
-                    <span id="nav-title">G<i className="fab fa-codepen"></i>emini</span>
-                </Link>
-            </header>
+    if (!validateInputs()) return;
 
-            <div className="login-form-container">
-                <div className="login-form">
-                    <h1 className="login-form-title">Login</h1>
+    try {
+      const response = await loginUser({ e, setIsLoggedIn, credentials,navigate});
 
-                    <form onSubmit={handleSubmit}>
-                        <div className="login-input-container">
-                            <label htmlFor="email" className="login-input-label">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                name="email"
-                                className="login-input"
-                                placeholder="you@example.com"
-                                id="email"
-                                value={credentials.email}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div className="login-input-container">
-                            <label htmlFor="userName" className="login-input-label">
-                                Username
-                            </label>
-                            <input
-                                type="text"
-                                name="userName"
-                                className="login-input"
-                                placeholder="Your username"
-                                id="userName"
-                                value={credentials.userName}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div className="login-input-container">
-                            <label htmlFor="password" className="login-input-label">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                name="password"
-                                className="login-input"
-                                placeholder="••••••••"
-                                id="password"
-                                value={credentials.password}
-                                onChange={handleChange}
-                            />
-                        </div>
+      // Show toast based on response.statusCode
+      if (response.statusCode === 400 || response.statusCode === 401) {
+        toast.error(response.message || "Invalid credentials.");
+      } else {
+        toast.error(response.message || "Login failed. Try again.");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      toast.error("Login failed. Please try again.");
+    }
+  };
 
-                        <button className="login-button" type="submit">
-                            Login
-                        </button>
-                    </form>
-                    <div className="login-footer">
-                        Don't have an account?{" "}
-                        <Link to="/signup" className="login-footer-link">
-                            Sign Up
-                        </Link>
-                    </div>
-                </div>
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials((prev) => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 font-sans px-4 sm:px-6 lg:px-8">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl bg-white border border-gray-200 rounded-2xl shadow-lg p-6 sm:p-8 lg:p-10">
+        {/* Back Link */}
+        <Link
+          to="/signup"
+          className="flex items-center text-gray-900 text-sm sm:text-base font-medium mb-6 hover:text-blue-500 transition"
+        >
+          <FaArrowLeft className="mr-2 mt-1" /> Back
+        </Link>
+
+        {/* Header */}
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-center mb-2 text-gray-900">
+          Welcome Back
+        </h1>
+        <p className="text-center text-gray-500 mb-6 text-sm sm:text-base">
+          Sign in to your account
+        </p>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email or Username */}
+          <div>
+            <label className="block text-sm sm:text-base font-medium text-gray-700 mb-1">
+              Email or Username
+            </label>
+            <div className="relative">
+              <MdOutlineEmail className="absolute left-3 top-3.5 text-gray-400 text-lg" />
+              <input
+                type="text"
+                name="identifier"
+                placeholder="you@example.com or username"
+                value={credentials.identifier}
+                onChange={handleChange}
+                required
+                className="w-full pl-10 pr-3 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none text-sm sm:text-base"
+              />
             </div>
-        </div>
-    );
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm sm:text-base font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <div className="relative">
+              <MdLock className="absolute left-3 top-3.5 text-gray-400 text-lg" />
+              <input
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={credentials.password}
+                onChange={handleChange}
+                required
+                className="w-full pl-10 pr-3 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none text-sm sm:text-base"
+              />
+            </div>
+          </div>
+
+          {/* Remember Me */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-gray-600">
+            <label className="flex items-center gap-2 mb-2 sm:mb-0">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 border-gray-300 rounded focus:ring-blue-400"
+              />
+              <span className="m-2">Remember me</span>
+            </label>
+            <Link to="/forgot-password" className="text-blue-500 hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className="w-full mt-3 py-2 sm:py-3 font-semibold rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition text-sm sm:text-base"
+          >
+            Login
+          </button>
+        </form>
+
+        {/* Signup */}
+        <p className="text-center text-gray-600 text-sm sm:text-base mt-6">
+          Don’t have an account?{" "}
+          <Link to="/signup" className="text-blue-500 font-semibold hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default LoginPage;
-
-
-
-
-
-
-// import React, { useContext, useState } from "react";
-// import { Link, useNavigate } from "react-router-dom";
-// import { ContextApi } from "../../Context/context";
-// import './Login.css';
-
-// const LoginPage = ({ setIsLoggedIn }) => {
-//     const { loginUser } = useContext(ContextApi)
-//     const [credentials, setCredentials] = useState({ email: "", userName: "", password: "" });
-//     const navigate = useNavigate();
-
-//     const login = async () => {
-//         e.preventDefault();
-//         try {
-//             await loginUser({ e, setIsLoggedIn, credentials, navigate });
-//         } catch (error) {
-//             console.error("Login failed:", error);
-//             alert("Login failed. Please try again.");
-//         }
-//     }
-
-//     const onChange = (e) => {
-//         const { name, value } = e.target;
-//         setCredentials(prevCredentials => ({ ...prevCredentials, [name]: value }));
-//     };
-
-//     return (
-//         <div className="login-container hero-bg">
-//             <header className="login-header">
-//                 <Link to="/">
-//                     <a id="nav-title" href="/" target="_blank">G<i className="fab fa-codepen"></i>emini</a>
-//                 </Link>
-//             </header>
-
-//             <div className="login-form-container">
-//                 <div className="login-form">
-//                     <h1 className="login-form-title">Login</h1>
-
-//                     <form onSubmit={login}>
-//                         <div className="login-input-container">
-//                             <label htmlFor="email" className="login-input-label">
-//                                 Email
-//                             </label>
-//                             <input
-//                                 type="email"
-//                                 name="email"
-//                                 className="login-input"
-//                                 placeholder="you@example.com"
-//                                 id="email"
-//                                 value={credentials.email}
-//                                 onChange={onChange}
-//                             />
-//                         </div>
-//                         <div className="login-input-container">
-//                             <label htmlFor="userName" className="login-input-label">
-//                                 Username
-//                             </label>
-//                             <input
-//                                 type="text"
-//                                 name="userName"
-//                                 className="login-input"
-//                                 placeholder="Your username"
-//                                 id="userName"
-//                                 value={credentials.userName}
-//                                 onChange={onChange}
-//                             />
-//                         </div>
-//                         <div className="login-input-container">
-//                             <label htmlFor="password" className="login-input-label">
-//                                 Password
-//                             </label>
-//                             <input
-//                                 type="password"
-//                                 name="password"
-//                                 className="login-input"
-//                                 placeholder="••••••••"
-//                                 id="password"
-//                                 value={credentials.password}
-//                                 onChange={onChange}
-//                             />
-//                         </div>
-
-//                         <button className="login-button" type="submit">
-//                             Login
-//                         </button>
-//                     </form>
-//                     <div className="login-footer">
-//                         Don't have an account?{" "}
-//                         <Link to="/signup" className="login-footer-link">
-//                             Sign Up
-//                         </Link>
-//                     </div>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default LoginPage;
-
